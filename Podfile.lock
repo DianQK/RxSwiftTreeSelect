@@ -1,14 +1,16 @@
 PODS:
-  - R.swift (3.3.0):
-    - R.swift.Library (~> 3.0.2)
-  - R.swift.Library (3.0.2)
-  - RxCocoa (3.6.1):
-    - RxSwift (~> 3.6)
-  - RxDataSources (1.0.4):
-    - RxCocoa (~> 3.0)
-    - RxSwift (~> 3.0)
-  - RxSwift (3.6.1)
-  - SwiftyJSON (3.1.4)
+  - Differentiator (3.0.2)
+  - R.swift (4.0.0):
+    - R.swift.Library (~> 4.0.0)
+  - R.swift.Library (4.0.0)
+  - RxCocoa (4.0.0):
+    - RxSwift (~> 4.0)
+  - RxDataSources (3.0.2):
+    - Differentiator (~> 3.0)
+    - RxCocoa (~> 4.0)
+    - RxSwift (~> 4.0)
+  - RxSwift (4.0.0)
+  - SwiftyJSON (4.0.0)
 
 DEPENDENCIES:
   - R.swift
@@ -18,13 +20,14 @@ DEPENDENCIES:
   - SwiftyJSON
 
 SPEC CHECKSUMS:
-  R.swift: bde9704d50ff36820f49e266bc88ef545e1e9b36
-  R.swift.Library: fbdec16c9802ad104fc1ba53415dc190e6ec5c73
-  RxCocoa: 84a08739ab186248c7f31ce4ee92d6f8a947d690
-  RxDataSources: b3389acc5fe2eefb8fcd81a2b76a876ad08bc82a
-  RxSwift: f9de85ea20cd2f7716ee5409fc13523dc638e4e4
-  SwiftyJSON: c2842d878f95482ffceec5709abc3d05680c0220
+  Differentiator: a87be69eba49ec4ab460c7671143ee3a9eececfd
+  R.swift: d6a5ec2f55a8441dc0ed9f1f8b37d7d11ae85c66
+  R.swift.Library: c3af34921024333546e23b70e70d0b4e0cffca75
+  RxCocoa: d62846ca96495d862fa4c59ea7d87e5031d7340e
+  RxDataSources: cb7c31e652a87ebb919da45f716bbb87b3765f6b
+  RxSwift: fd680d75283beb5e2559486f3c0ff852f0d35334
+  SwiftyJSON: 070dabdcb1beb81b247c65ffa3a79dbbfb3b48aa
 
 PODFILE CHECKSUM: 42f0a614cc0549e310f1256c45e459a9a422f559
 
-COCOAPODS: 1.3.1
+COCOAPODS: 1.4.0.beta.2

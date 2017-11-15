@@ -67,11 +67,11 @@ class ExpandedTableViewCell: UITableViewCell {
 }
 
 extension Reactive where Base: ExpandedTableViewCell {
-    var isExpanded: AnyObserver<Bool> {
-        return UIBindingObserver(UIElement: self.base as ExpandedTableViewCell, binding: { (cell, isExpanded) in
+    var isExpanded: Binder<Bool> {
+        return Binder(self.base as ExpandedTableViewCell, binding: { (cell, isExpanded) in
             if cell.isExpanded != isExpanded {
                 cell.isExpanded = isExpanded
             }
-        }).asObserver()
+        })
     }
 }

@@ -21,7 +21,47 @@ class ViewController: UIViewController, UITableViewDelegate {
     
     let disposeBag = DisposeBag()
 
-    private let dataSource = RxTableViewSectionedAnimatedDataSource<ContentsSectionModel>()
+    private let dataSource = RxTableViewSectionedAnimatedDataSource<ContentsSectionModel>(configureCell: { dataSource, tableView, indexPath, item in
+        let cell = tableView.dequeueReusableCell(withIdentifier: R.reuseIdentifier.expandedCell, for: indexPath)!
+
+        let headIndent = CGFloat(item.model.level * 15)
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.firstLineHeadIndent = headIndent
+        paragraphStyle.headIndent = headIndent
+        let font = item.canExpanded ? UIFont.boldSystemFont(ofSize: 17) : UIFont.systemFont(ofSize: 17)
+        let attributeString = NSAttributedString(string: item.model.title, attributes: [
+            NSAttributedStringKey.paragraphStyle: paragraphStyle,
+            NSAttributedStringKey.font: font
+            ])
+
+        cell.attributedText = attributeString
+        cell.canExpanded = item.canExpanded
+        cell.level = item.model.level
+        if item.canExpanded {
+            item.isExpanded.asObservable()
+                .bind(to: cell.rx.isExpanded)
+                .disposed(by: cell.prepareForReuseBag)
+        }
+        item.model.isSelected.asObservable()
+            .subscribe(onNext: { (isSelected, isSelectedAll) in
+                cell.selectButton.isSelected = isSelected
+                cell.selectButton.setImage(isSelectedAll ? R.image.icon_star_active() : R.image.icon_star_active_part(), for: .selected)
+            })
+            .disposed(by: cell.prepareForReuseBag)
+        func updateAllSelectState(subItems: [ExpandableContentItemModel], isSelectedAll: Bool) {
+            for subItem in subItems where subItem.model.isSelected.value.isSelectedAll != isSelectedAll {
+                subItem.model.isSelected.value = (isSelected: isSelectedAll, isSelectedAll: isSelectedAll)
+                updateAllSelectState(subItems: subItem.subItems, isSelectedAll: isSelectedAll)
+            }
+        }
+        cell.selectButton.rx.tap.asObservable()
+            .subscribe(onNext: {
+                item.model.isSelected.value = (isSelected: !item.model.isSelected.value.isSelectedAll, isSelectedAll: !item.model.isSelected.value.isSelectedAll)
+                updateAllSelectState(subItems: item.subItems, isSelectedAll: item.model.isSelected.value.isSelectedAll)
+            })
+            .disposed(by: cell.prepareForReuseBag)
+        return cell
+        })
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,8 +70,8 @@ class ViewController: UIViewController, UITableViewDelegate {
             .just(R.file.contentsJson, scheduler: SerialDispatchQueueScheduler(qos: .background))
 
         let expandableItems: Observable<[ExpandableContentItemModel]> = fetch
-            .map { try! Data(resource: $0) }
-            .map { JSON(data: $0) }
+            .map { try Data(resource: $0) }
+            .map { try JSON(data: $0) }
             .map { json -> [ExpandableContentItemModel] in
                 json.arrayValue.map {
                     ContentItemModel.createExpandableContentItemModel(json: $0, withPreLevel: -1)
@@ -51,7 +91,6 @@ class ViewController: UIViewController, UITableViewDelegate {
                 }
             }
             .map { [ContentsSectionModel(model: "", items: $0)] }
-            .shareReplay(1)
             .observeOn(MainScheduler.instance)
             .bind(to: contentsTableView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
@@ -59,55 +98,13 @@ class ViewController: UIViewController, UITableViewDelegate {
         do {
             contentsTableView.rx.setDelegate(self).disposed(by: disposeBag)
         }
-        
-        func updateAllSelectState(subItems: [ExpandableContentItemModel], isSelectedAll: Bool) {
-            for subItem in subItems where subItem.model.isSelected.value.isSelectedAll != isSelectedAll {
-                subItem.model.isSelected.value = (isSelected: isSelectedAll, isSelectedAll: isSelectedAll)
-                updateAllSelectState(subItems: subItem.subItems, isSelectedAll: isSelectedAll)
-            }
-        }
 
         do {
             dataSource.animationConfiguration = RxDataSources.AnimationConfiguration(
                 insertAnimation: .fade,
                 reloadAnimation: .fade,
-                deleteAnimation: .fade)
-
-            dataSource.configureCell = { dataSource, tableView, indexPath, item in
-                let cell = tableView.dequeueReusableCell(withIdentifier: R.reuseIdentifier.expandedCell, for: indexPath)!
-
-                let headIndent = CGFloat(item.model.level * 15)
-                let paragraphStyle = NSMutableParagraphStyle()
-                paragraphStyle.firstLineHeadIndent = headIndent
-                paragraphStyle.headIndent = headIndent
-                let font = item.canExpanded ? UIFont.boldSystemFont(ofSize: 17) : UIFont.systemFont(ofSize: 17)
-                let attributeString = NSAttributedString(string: item.model.title, attributes: [
-                    NSParagraphStyleAttributeName: paragraphStyle,
-                    NSFontAttributeName: font
-                    ])
-
-                cell.attributedText = attributeString
-                cell.canExpanded = item.canExpanded
-                cell.level = item.model.level
-                if item.canExpanded {
-                    item.isExpanded.asObservable()
-                        .bind(to: cell.rx.isExpanded)
-                        .disposed(by: cell.prepareForReuseBag)
-                }
-                item.model.isSelected.asObservable()
-                    .subscribe(onNext: { (isSelected, isSelectedAll) in
-                        cell.selectButton.isSelected = isSelected
-                        cell.selectButton.setImage(isSelectedAll ? R.image.icon_star_active() : R.image.icon_star_active_part(), for: .selected)
-                    })
-                    .disposed(by: cell.prepareForReuseBag)
-                cell.selectButton.rx.tap.asObservable()
-                    .subscribe(onNext: {
-                        item.model.isSelected.value = (isSelected: !item.model.isSelected.value.isSelectedAll, isSelectedAll: !item.model.isSelected.value.isSelectedAll)
-                        updateAllSelectState(subItems: item.subItems, isSelectedAll: item.model.isSelected.value.isSelectedAll)
-                    })
-                    .disposed(by: cell.prepareForReuseBag)
-                return cell
-            }
+                deleteAnimation: .fade
+            )
         }
 
         do {
@@ -135,7 +132,7 @@ class ViewController: UIViewController, UITableViewDelegate {
         let headIndent = CGFloat(item.model.level * 15)
         let font = item.canExpanded ? UIFont.boldSystemFont(ofSize: 17) : UIFont.systemFont(ofSize: 17)
         let attributeString = NSAttributedString(string: item.model.title, attributes: [
-            NSFontAttributeName: font
+            NSAttributedStringKey.font: font
             ])
         let textWidth = tableView.bounds.width - 80 - headIndent
         let textSize = attributeString.boundingRect(with: CGSize(width: textWidth, height: .greatestFiniteMagnitude), options: NSStringDrawingOptions.usesLineFragmentOrigin, context: nil)
