@@ -30,8 +30,8 @@ class ViewController: UIViewController, UITableViewDelegate {
         paragraphStyle.headIndent = headIndent
         let font = item.canExpanded ? UIFont.boldSystemFont(ofSize: 17) : UIFont.systemFont(ofSize: 17)
         let attributeString = NSAttributedString(string: item.model.title, attributes: [
-            NSAttributedStringKey.paragraphStyle: paragraphStyle,
-            NSAttributedStringKey.font: font
+            NSAttributedString.Key.paragraphStyle: paragraphStyle,
+            NSAttributedString.Key.font: font
             ])
 
         cell.attributedText = attributeString
@@ -132,7 +132,7 @@ class ViewController: UIViewController, UITableViewDelegate {
         let headIndent = CGFloat(item.model.level * 15)
         let font = item.canExpanded ? UIFont.boldSystemFont(ofSize: 17) : UIFont.systemFont(ofSize: 17)
         let attributeString = NSAttributedString(string: item.model.title, attributes: [
-            NSAttributedStringKey.font: font
+            NSAttributedString.Key.font: font
             ])
         let textWidth = tableView.bounds.width - 80 - headIndent
         let textSize = attributeString.boundingRect(with: CGSize(width: textWidth, height: .greatestFiniteMagnitude), options: NSStringDrawingOptions.usesLineFragmentOrigin, context: nil)
